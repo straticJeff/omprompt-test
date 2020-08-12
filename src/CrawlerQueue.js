@@ -1,5 +1,3 @@
-import fetch, {FetchError} from "node-fetch"
-
 export class CrawlerQueue {
     /**
      *
@@ -46,8 +44,9 @@ export class CrawlerQueue {
     }
 
     crawl(url) {
-        if (!this.crawledUrls[this.sanitiseUrl(url)]) {
-            this.urlsToCrawl.push(url)
+        const sanitisedUrl = this.sanitiseUrl(url)
+        if (!this.urlsToCrawl.has(sanitisedUrl) && !this.crawledUrls.has(sanitisedUrl)) {
+            this.urlsToCrawl.add(url)
         }
     }
 
@@ -59,8 +58,6 @@ export class CrawlerQueue {
     displayResultSummary(result) {
         if (result.containsToken) {
             console.log(`URL: ${result.url} DOES contain token: ${result.desiredToken}`)
-        } else {
-            console.log(`URL: ${result.url} does NOT contain token ${result.desiredToken}`)
         }
     }
 
@@ -81,7 +78,6 @@ export class CrawlerQueue {
 
     getStatus() {
         console.log("URLs left to crawl: " + this.urlsToCrawl.length)
-        // console.log(this.urlsToCrawl.slice(0, 25))
     }
 
     popNextUrl() {
@@ -110,10 +106,9 @@ export class CrawlerQueue {
             this.slots.fill(null)
         }
 
-        this.getStatus()
+        // this.getStatus()
         if (!this.hasUrlsToCrawl() && this.allSlotsAvailable()) {
-            console.log('DONE')
-            this.done("Complete")
+            this.done('Crawl complete')
         }
         if (this.hasUrlsToCrawl() && this.getAvailableSlots().length > 0) {
             await enqueue()
