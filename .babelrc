@@ -1,0 +1,21 @@
+{
+  "presets": [
+    [
+      "@babel/preset-env",
+      {
+        "targets": {
+          "node": "10.16.3"
+        }
+      }
+    ]
+  ],
+  "env": {
+    "prod": {
+      "ignore": [
+        "**/*.test.js"
+      ]
+    }
+  },
+  "sourceMaps": "inline",
+  "retainLines": true
+}
