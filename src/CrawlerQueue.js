@@ -16,8 +16,8 @@ export class CrawlerQueue {
         this.fetchPageFn = fetchPage
         this.slots = new Array(maxActivePromises).fill(null)
 
-        this.urlsToCrawl = []
-        this.crawledUrls = {}
+        this.urlsToCrawl = new Set()
+        this.crawledUrls = new Set()
 
         this.done = function() {}
         this.corePromise = new Promise(this.done)
@@ -25,7 +25,7 @@ export class CrawlerQueue {
 
     markVisitedUrl(result) {
         const {url} = result
-        this.crawledUrls[this.sanitiseUrl(url)] = true
+        this.crawledUrls.add(this.sanitiseUrl(url))
         return result
     }
 
@@ -84,16 +84,18 @@ export class CrawlerQueue {
         // console.log(this.urlsToCrawl.slice(0, 25))
     }
 
+    popNextUrl() {
+        const url = this.urlsToCrawl.values().next().value
+        this.urlsToCrawl.delete(url)
+        return url
+    }
 
     async queueLoop () {
         const enqueue = async () => {
             for (let i = 0; i < this.slots.length; i++) {
                 const slot = this.slots[i]
-                if (slot === null && this.urlsToCrawl.length > 0) {
-                    const url = this.urlsToCrawl
-                        .splice(0, 1)
-                        .pop()
-                    this.slots[i] = this.createCrawlPromise(url)
+                if (slot === null && this.urlsToCrawl.size > 0) {
+                    this.slots[i] = this.createCrawlPromise(this.popNextUrl())
                 }
             }
             for (let i = 0; i < this.slots.length; i++) {
@@ -128,7 +130,7 @@ export class CrawlerQueue {
     }
 
     hasUrlsToCrawl() {
-        return this.urlsToCrawl.length > 0
+        return this.urlsToCrawl.size > 0
     }
 }
 
